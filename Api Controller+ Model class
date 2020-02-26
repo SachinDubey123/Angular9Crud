@@ -1,0 +1,163 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace WebApi.Models
+{
+    public class Student
+    {
+        public int StudentId { get; set; }
+        public string Name { get; set; }
+        public string Branch { get; set; }
+        public string Section { get; set; }
+        public string Gender { get; set; }
+
+        public int pageNo { get; set; }
+        public int pageRecord { get; set; }
+    }
+}
+
+
+//Controller
+namespace WebApi.Controllers
+{
+    public class TestStudentController : ApiController
+    {
+
+        public static List<Student> GetEmployeeList()
+        {
+            List<Student> _studentList = new List<Student>();
+            for (int i = 1; i < 100; i++)
+            {
+                _studentList.Add(new Student() { StudentId = i, Name = "James", Branch = "CSE", Section = "A", Gender = "Male" });
+            }
+            return _studentList;
+        }
+
+        //private static List<Student> _studentList = new List<Student>()
+        //{
+        //    new Student() { StudentId = 1, Name = "James", Branch = "CSE", Section = "A", Gender = "Male" },
+        //       new Student() { StudentId = 2, Name = "Smith", Branch = "ETC", Section = "B", Gender = "Male" },
+        //        new Student() { StudentId = 3, Name = "David", Branch = "CSE", Section = "A", Gender = "Male" },
+        //       new Student() { StudentId = 4, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //        new Student() { StudentId = 5, Name = "Pam", Branch = "ETC", Section = "B", Gender = "Female" },
+        //         new Student() { StudentId = 6, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //          new Student() { StudentId = 7, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //           new Student() { StudentId = 8, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //        new Student() { StudentId = 9, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 10, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 11, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 12, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //          new Student() { StudentId =13, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 14, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 15, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 16, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 17, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 18, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 19, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 20, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 21, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 22, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 23, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 24, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 25, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 26, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 27, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 28, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 29, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" },
+        //         new Student() { StudentId = 30, Name = "Sara", Branch = "CSE", Section = "A", Gender = "Female" }
+                
+        //};
+        //public TestStudentController()
+        //{
+        //}
+        [HttpGet]
+        public IHttpActionResult GetAllStudents(int pageNo = 0)
+        {
+            IList<Student> students = null;
+            int pageRecord = 3;
+            //var employees = _studentList.Skip((pageNo - 1) * pageRecord)
+            //                       .Take(pageRecord).ToList();
+
+            var employees = GetEmployeeList().Skip((pageNo - 1) * pageRecord)
+                                   .Take(pageRecord).Select(s => new Student()
+                                   {
+                                       StudentId = s.StudentId,
+                                       Name = s.Name,
+                                       Branch = s.Branch,
+                                       Section = s.Section,
+                                       Gender = s.Gender,
+                                       pageNo = pageNo,
+                                   }).ToList();
+
+            students = employees;
+            if (students.Count == 0)
+            {
+                return NotFound();
+            }
+            return Ok(students);
+        }
+        [HttpPost]
+        public IHttpActionResult PostStudent(Student stud)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid data.");
+            int newId = GetEmployeeList().Max(u => u.StudentId);
+            Student studModel = new Student();
+            studModel.StudentId = newId + 1;
+            studModel.Name = stud.Name;
+            studModel.Branch = stud.Branch;
+            studModel.Section = stud.Section;
+            studModel.Gender = stud.Gender;
+
+            GetEmployeeList().Add(studModel);
+
+            return Ok();
+        }
+        [HttpPost]
+        public IHttpActionResult GetStudent(int studentId)
+        {
+            if (studentId <= 0)
+                return BadRequest("Not a valid student id");
+            Student st = GetEmployeeList().Where(s => s.StudentId == studentId).Select(s => new Student()
+            {
+                StudentId = s.StudentId,
+                Name = s.Name,
+                Branch = s.Branch,
+                Section = s.Section,
+                Gender = s.Gender
+            }).FirstOrDefault<Student>();
+
+            return Ok(st);
+        }
+        [HttpDelete]
+        public IHttpActionResult DeleteStudent(int studentId)
+        {
+            if (studentId <= 0)
+                return BadRequest("Not a valid student id");
+            GetEmployeeList().RemoveAll((x) => x.StudentId == studentId);
+
+            // _studentList.Remove(st);
+            return Ok();
+        }
+        public IHttpActionResult PutStudent(Student stud)
+        {
+            if (stud.StudentId <= 0)
+                return BadRequest("Not a valid student id");
+
+            var entity = GetEmployeeList().FirstOrDefault(s => s.StudentId == stud.StudentId);
+
+            Student studModel = new Student();
+            entity.StudentId = stud.StudentId;
+            entity.Name = stud.Name;
+            entity.Branch = stud.Branch;
+            entity.Section = stud.Section;
+            entity.Gender = stud.Gender;
+
+            GetEmployeeList().Add(entity);
+            return Ok();
+        }
+
+    }
+}
